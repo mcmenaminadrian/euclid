@@ -44,7 +44,7 @@ public:
 	{ return processorIndex; }
 	const std::vector<uint8_t> getMemory() const { return payload; }
 	void setWrite() {write = true;}
-	bool getWrite const {return write;}
+	bool getWrite() const {return write;}
 };
 
 #endif
