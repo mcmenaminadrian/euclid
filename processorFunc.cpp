@@ -354,7 +354,7 @@ void ProcessorFunctor::flushSelectedPage() const
    br_(0);
    proc->flushPagesStart();
    //REG1 points to start of page table
-   addi_(REG1, REG0, PAGETABLESLOCAL + (1 << PAGE_SHIFT));
+   addi_(REG1, REG0, PAGESLOCAL + (1 << PAGE_SHIFT));
    //REG3 page we are looking for
    andi_(REG3, REG3, PAGE_ADDRESS_MASK);
    //REG2 total pages
@@ -427,7 +427,7 @@ void ProcessorFunctor::dropPage() const
     br_(0);
     proc->flushPagesStart();
     //REG1 points to start of page table
-    addi_(REG1, REG0, PAGETABLESLOCAL + (1 << PAGE_SHIFT));
+    addi_(REG1, REG0, PAGESLOCAL + (1 << PAGE_SHIFT));
     //REG3 page we are looking for
     andi_(REG3, REG3, PAGE_ADDRESS_MASK);
     //REG2 total pages
@@ -499,7 +499,7 @@ void ProcessorFunctor::flushPages() const
     br_(0);
     proc->flushPagesStart();
     //REG1 points to start of page table
-    addi_(REG1, REG0, PAGETABLESLOCAL + (1 << PAGE_SHIFT));
+    addi_(REG1, REG0, PAGESLOCAL + (1 << PAGE_SHIFT));
     //REG2 counts number of pages
     addi_(REG2, REG0, TILE_MEM_SIZE >> PAGE_SHIFT);
     //REG3 holds pages done so far
@@ -528,14 +528,14 @@ check_page_status:
     //load virtual address in REG4
     lwi_(REG4, REG17, VOFFSET);
     //test if it is remote
-    subi_(REG5, REG4, PAGETABLESLOCAL);
+    subi_(REG5, REG4, PAGESLOCAL);
     getsw_(REG5);
     and_(REG5, REG5, REG29);
     add_(REG6, REG0, REG29);
     if (beq_(REG5, REG6, 0)) {
         goto flush_page;
     }
-    addi_(REG6, REG0, PAGETABLESLOCAL + TILE_MEM_SIZE);
+    addi_(REG6, REG0, PAGESLOCAL + TILE_MEM_SIZE);
     sub_(REG5, REG6, REG4);
     getsw_(REG5);
     and_(REG5, REG5, REG29);
@@ -762,7 +762,7 @@ ending:
     addi_(REG1, REG0, proc->getProgramCounter());
     flushPages();
     //update processor count
-    lwi_(REG30, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3); 
+    lwi_(REG30, REG0, PAGESLOCAL + sizeof(uint64_t) * 3); 
     swi_(REG30, REG0, 0x110);
     addi_(REG3, REG0, 0x110);
     addi_(REG1, REG0, proc->getProgramCounter());
@@ -797,7 +797,7 @@ void ProcessorFunctor::forcePageReload() const
 table_walk:
     proc->setProgramCounter(walking_the_table);
     muli_(REG12, REG5, PAGETABLEENTRY);
-    lwi_(REG11, REG12, PAGETABLESLOCAL + VOFFSET + (1 << PAGE_SHIFT));
+    lwi_(REG11, REG12, PAGESLOCAL + VOFFSET + (1 << PAGE_SHIFT));
     if (beq_(REG11, REG6, 0)) {
         goto matched_page;
     }
@@ -811,13 +811,13 @@ walk_next_page:
     goto table_walk;
  
 matched_page:
-    lwi_(REG11, REG12, PAGETABLESLOCAL + FLAGOFFSET + (1 << PAGE_SHIFT));
+    lwi_(REG11, REG12, PAGESLOCAL + FLAGOFFSET + (1 << PAGE_SHIFT));
     andi_(REG13, REG11, 0x01);
     if (beq_(REG13, REG0, 0)) {
         goto walk_next_page;
     }
     andi_(REG11, REG11, 0xFFFFFFFFFFFFFFFE);
-    swi_(REG11, REG12, PAGETABLESLOCAL + FLAGOFFSET + (1 << PAGE_SHIFT));
+    swi_(REG11, REG12, PAGESLOCAL + FLAGOFFSET + (1 << PAGE_SHIFT));
     //dump the page - ie wipe the bitmap
     proc->dumpPageFromTLB(proc->getRegister(REG6));
 
@@ -860,12 +860,12 @@ void ProcessorFunctor::operator()()
     dropPage();
     //store processor number
     addi_(REG1, REG0, proc->getNumber());
-    swi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
+    swi_(REG1, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);
 
     const uint64_t readCommandPoint = proc->getProgramCounter();
 read_command:
     proc->setProgramCounter(readCommandPoint);
-    lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);    
+    lwi_(REG1, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);    
     addi_(REG3, REG0, 0x110);
     push_(REG1);
     addi_(REG1, REG0, proc->getProgramCounter());
@@ -921,7 +921,7 @@ test_for_processor:
 
 normalise_line:
     push_(REG1);
-    lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
+    lwi_(REG1, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);
     if (beq_(REG1, REG0, 0)) {
 	goto now_for_normalise;
     }
@@ -1022,7 +1022,7 @@ calculate_next:
     goto wait_on_zero;
 
 on_to_next_round:
-    lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
+    lwi_(REG1, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);
     add_(REG12, REG0, REG15);
     push_(REG1);
     nextRound();
@@ -1049,7 +1049,7 @@ wait_for_turn_to_complete:
     dropPage();
     addi_(REG1, REG0, proc->getProgramCounter());
     dropPage();
-    lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
+    lwi_(REG1, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);
     if (beq_(REG4, REG1, 0)) {
         goto write_out_next_processor;
     }
@@ -1124,7 +1124,7 @@ work_here_is_done:
     addi_(REG21, REG0, SETSIZE);
     addi_(REG22, REG0, 0x01);
     addi_(REG23, REG0, 0x110);
-    lwi_(REG10, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
+    lwi_(REG10, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);
 
     uint64_t completeLoopDone = proc->getProgramCounter();
     uint64_t testProcUpdate;
@@ -1188,7 +1188,7 @@ void ProcessorFunctor::nextRound() const
     //calculate factor for this line
     //REG1 - hold processor number
     //REG12 - the 'top' line
-    lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
+    lwi_(REG1, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);
     cout << "Processor " << proc->getRegister(REG1) << " with base line "; 
     cout << proc->getRegister(REG12) << endl;
     if (beq_(REG1, REG12, 0)) {
