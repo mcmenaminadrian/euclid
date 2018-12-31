@@ -25,6 +25,7 @@ const uint64_t ProcessorFunctor::sumCount = 0x101;
 static const uint64_t BITMAP_FILTER = 0xFFFFFFFFFFFFFFFF;
 //alter to adjust for page size
 static const uint64_t PAGE_ADDRESS_MASK = 0xFFFFFFFFFFFFFC00;
+static const uint64_t WOFFSET = 0x60;
 
 //Number format
 //numerator
@@ -762,7 +763,7 @@ ending:
     addi_(REG1, REG0, proc->getProgramCounter());
     flushPages();
     //update processor count
-    lwi_(REG30, REG0, PAGESLOCAL + sizeof(uint64_t) * 3); 
+    lwi_(REG30, REG0, PAGESLOCAL + WOFFSET); 
     swi_(REG30, REG0, 0x110);
     addi_(REG3, REG0, 0x110);
     addi_(REG1, REG0, proc->getProgramCounter());
@@ -860,12 +861,12 @@ void ProcessorFunctor::operator()()
     dropPage();
     //store processor number
     addi_(REG1, REG0, proc->getNumber());
-    swi_(REG1, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);
+    swi_(REG1, REG0, PAGESLOCAL + WOFFSET);
 
     const uint64_t readCommandPoint = proc->getProgramCounter();
 read_command:
     proc->setProgramCounter(readCommandPoint);
-    lwi_(REG1, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);    
+    lwi_(REG1, REG0, PAGESLOCAL + WOFFSET);    
     addi_(REG3, REG0, 0x110);
     push_(REG1);
     addi_(REG1, REG0, proc->getProgramCounter());
@@ -921,7 +922,7 @@ test_for_processor:
 
 normalise_line:
     push_(REG1);
-    lwi_(REG1, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);
+    lwi_(REG1, REG0, PAGESLOCAL + WOFFSET);
     if (beq_(REG1, REG0, 0)) {
 	goto now_for_normalise;
     }
@@ -1022,7 +1023,7 @@ calculate_next:
     goto wait_on_zero;
 
 on_to_next_round:
-    lwi_(REG1, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);
+    lwi_(REG1, REG0, PAGESLOCAL + WOFFSET);
     add_(REG12, REG0, REG15);
     push_(REG1);
     nextRound();
@@ -1049,7 +1050,7 @@ wait_for_turn_to_complete:
     dropPage();
     addi_(REG1, REG0, proc->getProgramCounter());
     dropPage();
-    lwi_(REG1, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);
+    lwi_(REG1, REG0, PAGESLOCAL + WOFFSET);
     if (beq_(REG4, REG1, 0)) {
         goto write_out_next_processor;
     }
@@ -1124,7 +1125,7 @@ work_here_is_done:
     addi_(REG21, REG0, SETSIZE);
     addi_(REG22, REG0, 0x01);
     addi_(REG23, REG0, 0x110);
-    lwi_(REG10, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);
+    lwi_(REG10, REG0, PAGESLOCAL + WOFFSET);
 
     uint64_t completeLoopDone = proc->getProgramCounter();
     uint64_t testProcUpdate;
@@ -1188,7 +1189,7 @@ void ProcessorFunctor::nextRound() const
     //calculate factor for this line
     //REG1 - hold processor number
     //REG12 - the 'top' line
-    lwi_(REG1, REG0, PAGESLOCAL + sizeof(uint64_t) * 3);
+    lwi_(REG1, REG0, PAGESLOCAL + WOFFSET);
     cout << "Processor " << proc->getRegister(REG1) << " with base line "; 
     cout << proc->getRegister(REG12) << endl;
     if (beq_(REG1, REG12, 0)) {
