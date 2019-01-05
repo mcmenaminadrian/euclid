@@ -55,63 +55,63 @@ unsigned long Tile::getOrder() const
 
 uint8_t Tile::readByte(const uint64_t& address) const
 {
-	if (address < PAGESLOCAL || address > PAGESLOCAL +
+	if (address < PAGETABLESLOCAL || address > PAGETABLESLOCAL +
 		tileLocalMemory->getSize() - 1) {
 		return (parentBoard->getGlobal())[0].readByte(address);
 	} else {
-		return tileLocalMemory->readByte(address - PAGESLOCAL);
+		return tileLocalMemory->readByte(address - PAGETABLESLOCAL);
 	}
 }
 
 
 uint64_t Tile::readLong(const uint64_t& address) const
 {
-	if (address < PAGESLOCAL || address > PAGESLOCAL +
+	if (address < PAGETABLESLOCAL || address > PAGETABLESLOCAL +
 		tileLocalMemory->getSize() - 1) {
 		return (parentBoard->getGlobal())[0].readLong(address);
 	} else {
-		return tileLocalMemory->readLong(address - PAGESLOCAL);
+		return tileLocalMemory->readLong(address - PAGETABLESLOCAL);
 	}
 }
 	
 uint32_t Tile::readWord32(const uint64_t& address) const
 {
-	if (address < PAGESLOCAL || address > PAGESLOCAL +
+	if (address < PAGETABLESLOCAL || address > PAGETABLESLOCAL +
 		tileLocalMemory->getSize() - 1) {
 		return (parentBoard->getGlobal())[0].readWord32(address);
 	} else {
-		return tileLocalMemory->readWord32(address - PAGESLOCAL);
+		return tileLocalMemory->readWord32(address - PAGETABLESLOCAL);
 	}
 }
 
 void Tile::writeWord32(const uint64_t& address, const uint32_t& value) const
 {
-	if (address < PAGESLOCAL || address > PAGESLOCAL +
+	if (address < PAGETABLESLOCAL || address > PAGETABLESLOCAL +
 		tileLocalMemory->getSize() - 1) {
 		(parentBoard->getGlobal())[0].writeWord32(address, value);
 	} else {
-		tileLocalMemory->writeWord32(address - PAGESLOCAL, value);
+		tileLocalMemory->writeWord32(address - PAGETABLESLOCAL, value);
 	}
 }
 
 void Tile::writeByte(const uint64_t& address, const uint8_t& value) const
 {
-	if (address < PAGESLOCAL || address > PAGESLOCAL +
+	if (address < PAGETABLESLOCAL || address > PAGETABLESLOCAL +
 		tileLocalMemory->getSize() - 1) {
 		(parentBoard->getGlobal())[0].writeByte(address, value);
 	} else {
-		tileLocalMemory->writeByte(address - PAGESLOCAL, value);
+		tileLocalMemory->writeByte(address - PAGETABLESLOCAL, value);
 	}
 }
 
 void Tile::writeLong(const uint64_t& address, const uint64_t& value)
 	const
 {
-	if (address < PAGESLOCAL || address >= PAGESLOCAL +
+	if (address < PAGETABLESLOCAL || address >= PAGETABLESLOCAL +
 		tileLocalMemory->getSize()) {
 		(parentBoard->getGlobal())[0].writeLong(address, value);
 	} else {
-		return tileLocalMemory->writeLong(address - PAGESLOCAL,
+		return tileLocalMemory->writeLong(address - PAGETABLESLOCAL,
 			value);
 	}
 }

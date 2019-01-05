@@ -26,7 +26,7 @@
 #include "processorFunc.hpp"
 #include "ControlThread.hpp"
 
-#define PAGE_TABLE_COUNT 1024
+#define PAGE_TABLE_COUNT 256
 
 using namespace std;
 
@@ -99,7 +99,7 @@ Tile* Noc::tileAt(long i)
 
 long Noc::readInVariables(const string& path)
 {
-    ifstream inputFile("/usr/userfs/a/acm538/nocsim-qt/variables.csv");
+    ifstream inputFile("./variables.csv");
 	//first line is the answer
 	string rawAnswer;
 	getline(inputFile, rawAnswer);
@@ -186,139 +186,90 @@ void Noc::writeSystemToMemory()
 
 //memory regions - pair: 1st is number, 2nd is flag
 //on flag - bit 1 is valid
-
-
-//48 bit addresses
 const static uint64_t SUPERDIRLEN = 11;
 const static uint64_t DIRLEN = 9;
 const static uint64_t SUPERTABLELEN = 9;
 const static uint64_t TABLELEN = 9;
+
+
 unsigned long Noc::createBasicPageTables()
 {
-	uint64_t startOfPageTables = 2048;
-	//Create a bottom of the heirarchy table
+    uint64_t startOfPageTables = 2048;
+	//create a bottom of the heirarchy table
 
-	PageTable superDirectory(SUPERDIRLEN);
-	uint64_t runLength = 0;
-	uint64_t superDirectoryLength =
+    PageTable superDirectory(SUPERDIRLEN);
+    uint64_t runLength = 0;
+    uint64_t superDirectoryLength =
 		superDirectory.streamToMemory(globalMemory[0],
 		startOfPageTables);
-	globalMemory[0].writeLong(startOfPageTables + runLength,
-		startOfPageTables + runLength + superDirectoryLength);
+    globalMemory[0].writeLong(startOfPageTables + runLength,
+        startOfPageTables + runLength + superDirectoryLength);
 	//mark address as valid
-	globalMemory[0].writeByte(startOfPageTables + sizeof(uint64_t), 1);
-	runLength += superDirectoryLength;
-	uint64_t startOfDirectory = startOfPageTables + runLength;
+    globalMemory[0].writeByte(startOfPageTables + sizeof(uint64_t),
+		1);
+    runLength += superDirectoryLength;
 
-	PageTable directory(DIRLEN);
-	uint64_t directoryLength =
-		directory.streamToMemory(globalMemory[0], startOfDirectory);
-	globalMemory[0].writeLong(startOfDirectory, startOfDirectory +
-		directoryLength);
-	globalMemory[0].writeByte(startOfDirectory + sizeof(uint64_t), 1);
-	runLength += directoryLength;
-	uint64_t startOfSuperTable = startOfPageTables + runLength;
-
-	//page tables for low addresses here
-	PageTable superTable_A(SUPERTABLELEN);
-	uint64_t superTableLength =
-		superTable_A.streamToMemory(globalMemory[0], startOfSuperTable);
-	globalMemory[0].writeLong(startOfSuperTable,
-		startOfSuperTable + superTableLength);
-	globalMemory[0].writeByte(startOfSuperTable + sizeof(uint64_t), 1);
-	runLength += superTableLength;
-
-	vector<PageTable> tables;
-	for (int i = 0; i < PAGE_TABLE_COUNT; i++) {
-		PageTable pageTable(TABLELEN);
-		tables.push_back(pageTable);
-	}
-	uint64_t tableLength =
-		tables[0].streamToMemory(globalMemory[0],
+    PageTable directory(DIRLEN);
+    uint64_t directoryLength =
+		directory.streamToMemory(globalMemory[0],
 		startOfPageTables + runLength);
-	for (int i = 1; i < PAGE_TABLE_COUNT; i++) {
-		tables[i].streamToMemory(globalMemory[0],
-			startOfPageTables + runLength + i * tableLength);
-	}
-	for (int i = 0; i < PAGE_TABLE_COUNT; i++) {
-		uint64_t offsetA = startOfPageTables + runLength - superTableLength +
-			i * (sizeof(uint64_t) + sizeof(uint8_t));
-		globalMemory[0].writeLong(offsetA,
-			startOfPageTables + runLength + tableLength * i);
-		globalMemory[0].writeByte(offsetA + sizeof(uint64_t), 0x01);
-	}
-	uint64_t bottomOfPageTable = runLength + tableLength * PAGE_TABLE_COUNT;
-	for (unsigned int i = 0; i < (1 << TABLELEN) * PAGE_TABLE_COUNT; i++) {
-		uint64_t offsetB = startOfPageTables + runLength
-			+ i * (sizeof(uint64_t) + sizeof(uint8_t));
-		globalMemory[0].writeLong(offsetB, i * (1 << PAGE_SHIFT));
-		uint8_t flagOut = 0x03;
-		if (i > (2 + ((bottomOfPageTable + startOfPageTables) >> PAGE_SHIFT)))
-		{
-			flagOut = 0x01;
-		}
-		globalMemory[0].writeByte(offsetB + sizeof(uint64_t), flagOut);
-	}
+	globalMemory[0].writeLong(startOfPageTables + runLength,
+		startOfPageTables + runLength + directoryLength);
+	globalMemory[0].writeByte(
+        startOfPageTables + runLength + sizeof(uint64_t), 1);
+	runLength += directoryLength;
 
-	runLength += tableLength * PAGE_TABLE_COUNT;
+    PageTable superTable(SUPERTABLELEN);
+    uint64_t superTableLength =
+		superTable.streamToMemory(globalMemory[0],
+		startOfPageTables + runLength);
+	globalMemory[0].writeLong(startOfPageTables + runLength,
+        startOfPageTables + runLength + superTableLength);
+	globalMemory[0].writeByte(
+        startOfPageTables + runLength + sizeof(uint64_t), 1);
+    runLength += superTableLength;
 
-#define DIR_OFFSET 8
-	//now page tables for higher addresses
-	startOfSuperTable = startOfPageTables + runLength;
-	globalMemory[0].writeLong(startOfDirectory +
-		DIR_OFFSET * (sizeof(uint64_t) + sizeof(uint8_t)),
-		startOfSuperTable);
-	globalMemory[0].writeByte(startOfDirectory +
-		DIR_OFFSET * (sizeof (uint64_t) + sizeof(uint8_t)) +
-		sizeof(uint64_t), 1);
+    vector<PageTable> tables;
+    for (int i = 0; i < PAGE_TABLE_COUNT; i++) {
+        PageTable pageTable(TABLELEN);
+        tables.push_back(pageTable);
+    }
+    uint64_t tableLength =
+        tables[0].streamToMemory(globalMemory[0],
+		startOfPageTables + runLength);
+    for (int i = 1; i < PAGE_TABLE_COUNT; i++) {
+        tables[i].streamToMemory(globalMemory[0],
+                startOfPageTables + runLength + i * tableLength);
+    }
+    for (int i = 0; i < PAGE_TABLE_COUNT; i++) {
+        uint64_t offsetA = startOfPageTables + runLength - superTableLength +
+                i * (sizeof(uint64_t) + sizeof(uint8_t));
+        globalMemory[0].writeLong(offsetA,
+            startOfPageTables + runLength + tableLength * i);
+        globalMemory[0].writeByte(offsetA + sizeof(uint64_t), 0x01);
+    }
+    uint64_t bottomOfPageTable = runLength + tableLength * PAGE_TABLE_COUNT;
+    for (unsigned int i = 0; i < (1 << TABLELEN) * PAGE_TABLE_COUNT; i++) {
+        uint64_t offsetB = startOfPageTables + runLength
+                + i * (sizeof(uint64_t) + sizeof(uint8_t));
+        globalMemory[0].writeLong(offsetB, i * (1 << PAGE_SHIFT));
+        uint8_t flagOut = 0x03;
+        if (i > (2 + ((bottomOfPageTable + startOfPageTables) >> PAGE_SHIFT)))
+        {
+            flagOut = 0x01;
+        }
+        globalMemory[0].writeByte(offsetB + sizeof(uint64_t), flagOut);
+    }
 
-	PageTable superTable_B(SUPERTABLELEN);
-	superTable_B.streamToMemory(globalMemory[0], startOfSuperTable);
-	globalMemory[0].writeLong(startOfSuperTable,
-		startOfSuperTable + superTableLength);
-	globalMemory[0].writeByte(startOfSuperTable + sizeof(uint64_t), 1);
-	runLength += superTableLength;
-	uint64_t startSecondGroupPT = runLength + startOfPageTables;
+    runLength += tableLength * PAGE_TABLE_COUNT;
 
-	//add in yet more tables at the bottom
-	for (int i = 0; i < PAGE_TABLE_COUNT; i++) {
-		PageTable pageTable(TABLELEN);
-		tables.push_back(pageTable);
-	}
-
-	for (int i = PAGE_TABLE_COUNT; i < (2 * PAGE_TABLE_COUNT); i++) {
-		tables[i].streamToMemory(globalMemory[0],
-		startOfPageTables + runLength +
-			(i - PAGE_TABLE_COUNT) * tableLength);
-	}
-	//now fill in superTable_B
-	for (int i = 0; i < PAGE_TABLE_COUNT; i++) {
-		uint64_t offsetA = startOfSuperTable +
-			i * (sizeof(uint64_t) + sizeof(uint8_t));
-		globalMemory[0].writeLong(offsetA, startSecondGroupPT + i * tableLength);
-		globalMemory[0].writeByte(offsetA + sizeof(uint64_t), 0x01);
-	}
-
-	//now the page tables themselves
-	for (unsigned int i = 0; i < (1 << TABLELEN) * PAGE_TABLE_COUNT; i++) {
-		uint64_t offsetB = startSecondGroupPT +
-			i * (sizeof(uint64_t) + sizeof(uint8_t));
-		globalMemory[0].writeLong(offsetB, 0x80000000 +
-				i * (1 << PAGE_SHIFT));
-		uint8_t flagOut = 0x01;
-		globalMemory[0].writeByte(offsetB + sizeof(uint64_t), flagOut);
-	}
-
-	runLength += tableLength * PAGE_TABLE_COUNT;
-
-	unsigned long pagesUsedForTables = runLength >> PAGE_SHIFT;
-	if (runLength%(1 << PAGE_SHIFT)) {
+    unsigned long pagesUsedForTables = runLength >> PAGE_SHIFT;
+	if (runLength%1024) {
 		pagesUsedForTables++;
 	}
-
+	
 	return startOfPageTables;
 }
-
 
 long Noc::executeInstructions()
 {

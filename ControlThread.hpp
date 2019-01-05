@@ -26,20 +26,17 @@ private:
 	std::condition_variable go;
 	std::mutex taskCountLock;
 	std::mutex blockLock;
-	std::mutex cheatLock;
-	MainWindow *mainWindow;
-	void run();
+    MainWindow *mainWindow;
 
 public:
-	ControlThread(unsigned long count = 0, MainWindow *pWind = nullptr);
+    ControlThread(unsigned long count = 0, MainWindow *pWind = nullptr);
 	void incrementTaskCount();
 	void decrementTaskCount();
-	void incrementBlocks();
+	void run();
 	void begin();
 	void releaseToRun();
 	void waitForBegin();
-	bool tryCheatLock();
-	void unlockCheatLock();
+	void incrementBlocks();
 };
 
 #endif

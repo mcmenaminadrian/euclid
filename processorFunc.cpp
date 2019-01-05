@@ -25,7 +25,6 @@ const uint64_t ProcessorFunctor::sumCount = 0x101;
 static const uint64_t BITMAP_FILTER = 0xFFFFFFFFFFFFFFFF;
 //alter to adjust for page size
 static const uint64_t PAGE_ADDRESS_MASK = 0xFFFFFFFFFFFFFC00;
-static const uint64_t WOFFSET = 0x60;
 
 //Number format
 //numerator
@@ -79,6 +78,7 @@ enum reg {REG0, REG1, REG2, REG3, REG4, REG5, REG6, REG7, REG8, REG9,
 void ProcessorFunctor::add_(const uint64_t& regA,
 	const uint64_t& regB, const uint64_t& regC) const
 {
+	proc->waitATick();
 	proc->setRegister(regA,
 		proc->getRegister(regB) + proc->getRegister(regC));
 	proc->pcAdvance();
@@ -87,6 +87,7 @@ void ProcessorFunctor::add_(const uint64_t& regA,
 void ProcessorFunctor::addi_(const uint64_t& regA,
 	const uint64_t& regB, const uint64_t& imm) const
 {
+	proc->waitATick();
 	proc->pcAdvance();
 	proc->setRegister(regA, proc->getRegister(regB) + imm);
 	proc->pcAdvance();
@@ -95,6 +96,7 @@ void ProcessorFunctor::addi_(const uint64_t& regA,
 void ProcessorFunctor::and_(const uint64_t& regA,
 	const uint64_t& regB, const uint64_t& regC) const
 {
+	proc->waitATick();
 	proc->setRegister(regA,
 		proc->getRegister(regB) & proc->getRegister(regC));
 	proc->pcAdvance();
@@ -103,6 +105,7 @@ void ProcessorFunctor::and_(const uint64_t& regA,
 void ProcessorFunctor::andi_(const uint64_t& regA,
     const uint64_t& regB, const uint64_t& imm) const
 {
+	proc->waitATick();
     proc->pcAdvance();
     proc->setRegister(regA,
         proc->getRegister(regB) & imm);
@@ -112,6 +115,7 @@ void ProcessorFunctor::andi_(const uint64_t& regA,
 void ProcessorFunctor::sw_(const uint64_t& regA, const uint64_t& regB,
 	const uint64_t& regC) const
 {
+	proc->waitATick();
 	proc->writeAddress(proc->getRegister(regB) + proc->getRegister(regC),
 		proc->getRegister(regA));
 	proc->pcAdvance();
@@ -120,6 +124,7 @@ void ProcessorFunctor::sw_(const uint64_t& regA, const uint64_t& regB,
 void ProcessorFunctor::swi_(const uint64_t& regA,
 	const uint64_t& regB, const uint64_t& address) const
 {
+	proc->waitATick();
 	proc->pcAdvance();
 	proc->writeAddress(proc->getRegister(regB) + address,
 		proc->getRegister(regA));
@@ -129,6 +134,7 @@ void ProcessorFunctor::swi_(const uint64_t& regA,
 void ProcessorFunctor::lw_(const uint64_t& regA, const uint64_t& regB,
 	const uint64_t& regC) const
 {
+	proc->waitATick();
 	proc->setRegister(regA, proc->getLongAddress(
 		proc->getRegister(regB) + proc->getRegister(regC)));
 	proc->pcAdvance();
@@ -137,6 +143,7 @@ void ProcessorFunctor::lw_(const uint64_t& regA, const uint64_t& regB,
 void ProcessorFunctor::lwi_(const uint64_t& regA,
 	const uint64_t& regB, const uint64_t& address) const
 {
+	proc->waitATick();
 	proc->pcAdvance();
 	proc->setRegister(regA, proc->getLongAddress(
 		proc->getRegister(regB) + address)); 
@@ -164,6 +171,7 @@ void ProcessorFunctor::br_(const uint64_t& address) const
 
 void ProcessorFunctor::nop_() const
 {
+	proc->waitATick();
     proc->pcAdvance();
     //no operation
     
@@ -172,8 +180,9 @@ void ProcessorFunctor::nop_() const
 void ProcessorFunctor::div_(const uint64_t& regA,
     const uint64_t& regB, const uint64_t& regC) const
 {
+	proc->waitATick();
     proc->setRegister(regA, proc->getRegister(regB) / proc->getRegister(regC));
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < 31; i++) {
         proc->waitATick();
     }
     proc->pcAdvance();
@@ -182,9 +191,10 @@ void ProcessorFunctor::div_(const uint64_t& regA,
 void ProcessorFunctor::divi_(const uint64_t& regA,
     const uint64_t& regB, const uint64_t& imm) const
 {
+	proc->waitATick();
     proc->pcAdvance();
     proc->setRegister(regA, proc->getRegister(regB) / imm);
-    for (int i = 0; i < 32; i++) {
+    for (int i = 0; i < 31; i++) {
         proc->waitATick();
     }
     proc->pcAdvance();
@@ -194,6 +204,7 @@ void ProcessorFunctor::divi_(const uint64_t& regA,
 void ProcessorFunctor::mul_(const uint64_t& regA,
 	const uint64_t& regB, const uint64_t& regC) const
 {
+	proc->waitATick();
 	proc->setRegister(regA, 
 		proc->multiplyWithCarry(
 		proc->getRegister(regB), proc->getRegister(regC)));
@@ -203,6 +214,7 @@ void ProcessorFunctor::mul_(const uint64_t& regA,
 void ProcessorFunctor::muli_(const uint64_t& regA,
 	const uint64_t& regB, const uint64_t& multiplier) const
 {
+	proc->waitATick();
     proc->pcAdvance();
     proc->setRegister(regA, proc->multiplyWithCarry(proc->getRegister(regB),
         multiplier));
@@ -212,6 +224,7 @@ void ProcessorFunctor::muli_(const uint64_t& regA,
 void ProcessorFunctor::sub_(const uint64_t& regA, const uint64_t& regB,
     const uint64_t& regC) const
 {
+	proc->waitATick();
     proc->setRegister(regA, proc->subtractWithCarry(proc->getRegister(regB),
         proc->getRegister(regC)));
     proc->pcAdvance();
@@ -220,6 +233,7 @@ void ProcessorFunctor::sub_(const uint64_t& regA, const uint64_t& regB,
 void ProcessorFunctor::subi_(const uint64_t& regA, const uint64_t& regB,
     const uint64_t& imm) const
 {
+	proc->waitATick();
     proc->pcAdvance();
     proc->setRegister(regA, proc->subtractWithCarry(proc->getRegister(regB),
         imm));
@@ -229,12 +243,14 @@ void ProcessorFunctor::subi_(const uint64_t& regA, const uint64_t& regB,
 
 void ProcessorFunctor::getsw_(const uint64_t& regA) const
 {
+	proc->waitATick();
 	proc->setRegister(regA, proc->statusWord.to_ulong());
 	proc->pcAdvance();
 }
 
 void ProcessorFunctor::setsw_(const uint64_t& regA) const
 {
+	proc->waitATick();
 	uint32_t statusWord = proc->getRegister(regA);
 	for (int i = 0; i < 32; i++) {
 		proc->statusWord[i] = (statusWord & (1 << i));
@@ -245,18 +261,21 @@ void ProcessorFunctor::setsw_(const uint64_t& regA) const
 
 void ProcessorFunctor::getsp_(const uint64_t& regA) const
 {
+	proc->waitATick();
 	proc->setRegister(regA, proc->getStackPointer());
 	proc->pcAdvance();
 }
 
 void ProcessorFunctor::setsp_(const uint64_t& regA) const
 {
+	proc->waitATick();
 	proc->setStackPointer(proc->getRegister(regA));
 	proc->pcAdvance();
 }
 
 void ProcessorFunctor::pop_(const uint64_t& regA) const
 {
+	proc->waitATick();
     uint64_t sP = proc->getStackPointer();
     proc->setRegister(regA, proc->getLongAddress(sP));
     proc->waitATick();
@@ -266,6 +285,7 @@ void ProcessorFunctor::pop_(const uint64_t& regA) const
 
 void ProcessorFunctor::push_(const uint64_t& regA) const
 {
+	proc->waitATick();
     proc->pushStackPointer();
     proc->waitATick();
     proc->writeAddress(proc->getStackPointer(), proc->getRegister(regA));
@@ -274,6 +294,7 @@ void ProcessorFunctor::push_(const uint64_t& regA) const
 
 void ProcessorFunctor::shiftl_(const uint64_t& regA) const
 {
+	proc->waitATick();
     proc->setRegister(regA, proc->getRegister(regA) << 1);
     proc->pcAdvance();
 }
@@ -281,6 +302,7 @@ void ProcessorFunctor::shiftl_(const uint64_t& regA) const
 void ProcessorFunctor::shiftli_(const uint64_t& regA, const uint64_t& imm)
     const
 {
+	proc->waitATick();
     proc->pcAdvance();
     proc->setRegister(regA, proc->getRegister(regA) << imm);
     proc->pcAdvance();
@@ -288,6 +310,7 @@ void ProcessorFunctor::shiftli_(const uint64_t& regA, const uint64_t& imm)
 
 void ProcessorFunctor::shiftr_(const uint64_t& regA) const
 {
+	proc->waitATick();
     proc->setRegister(regA, proc->getRegister(regA) >> 1);
     proc->pcAdvance();
 }
@@ -295,6 +318,7 @@ void ProcessorFunctor::shiftr_(const uint64_t& regA) const
 void ProcessorFunctor::shiftrr_(const uint64_t& regA, const uint64_t& regB)
     const
 {
+	proc->waitATick();
     proc->setRegister(regA,
         proc->getRegister(regA) >> proc->getRegister(regB));
     proc->pcAdvance();
@@ -303,6 +327,7 @@ void ProcessorFunctor::shiftrr_(const uint64_t& regA, const uint64_t& regB)
 void ProcessorFunctor::shiftlr_(const uint64_t& regA, const uint64_t& regB)
     const
 {
+	proc->waitATick();
     proc->setRegister(regA,
         proc->getRegister(regA) << proc->getRegister(regB));
     proc->pcAdvance();
@@ -311,6 +336,7 @@ void ProcessorFunctor::shiftlr_(const uint64_t& regA, const uint64_t& regB)
 void ProcessorFunctor::shiftri_(const uint64_t& regA, const uint64_t& imm)
     const
 {
+	proc->waitATick();
     proc->pcAdvance();
     proc->setRegister(regA, proc->getRegister(regA) >> imm);
     proc->pcAdvance();
@@ -319,6 +345,7 @@ void ProcessorFunctor::shiftri_(const uint64_t& regA, const uint64_t& imm)
 void ProcessorFunctor::xor_(const uint64_t& regA, const uint64_t& regB,
     const uint64_t& regC) const
 {
+	proc->waitATick();
     proc->setRegister(regA, proc->getRegister(regB) ^ proc->getRegister(regC));
     proc->pcAdvance();
 }
@@ -326,6 +353,7 @@ void ProcessorFunctor::xor_(const uint64_t& regA, const uint64_t& regB,
 void ProcessorFunctor::or_(const uint64_t& regA, const uint64_t& regB,
     const uint64_t& regC) const
 {
+	proc->waitATick();
     proc->setRegister(regA, proc->getRegister(regB) | proc->getRegister(regC));
     proc->pcAdvance();
 }
@@ -333,6 +361,7 @@ void ProcessorFunctor::or_(const uint64_t& regA, const uint64_t& regB,
 void ProcessorFunctor::ori_(const uint64_t& regA, const uint64_t& regB,
     const uint64_t& imm) const
 {
+	proc->waitATick();
     proc->pcAdvance();
     proc->setRegister(regA, proc->getRegister(regB) | imm);
     proc->pcAdvance();
@@ -355,7 +384,7 @@ void ProcessorFunctor::flushSelectedPage() const
    br_(0);
    proc->flushPagesStart();
    //REG1 points to start of page table
-   addi_(REG1, REG0, PAGESLOCAL + (1 << PAGE_SHIFT));
+   addi_(REG1, REG0, PAGETABLESLOCAL + (1 << PAGE_SHIFT));
    //REG3 page we are looking for
    andi_(REG3, REG3, PAGE_ADDRESS_MASK);
    //REG2 total pages
@@ -428,7 +457,7 @@ void ProcessorFunctor::dropPage() const
     br_(0);
     proc->flushPagesStart();
     //REG1 points to start of page table
-    addi_(REG1, REG0, PAGESLOCAL + (1 << PAGE_SHIFT));
+    addi_(REG1, REG0, PAGETABLESLOCAL + (1 << PAGE_SHIFT));
     //REG3 page we are looking for
     andi_(REG3, REG3, PAGE_ADDRESS_MASK);
     //REG2 total pages
@@ -500,7 +529,7 @@ void ProcessorFunctor::flushPages() const
     br_(0);
     proc->flushPagesStart();
     //REG1 points to start of page table
-    addi_(REG1, REG0, PAGESLOCAL + (1 << PAGE_SHIFT));
+    addi_(REG1, REG0, PAGETABLESLOCAL + (1 << PAGE_SHIFT));
     //REG2 counts number of pages
     addi_(REG2, REG0, TILE_MEM_SIZE >> PAGE_SHIFT);
     //REG3 holds pages done so far
@@ -529,14 +558,14 @@ check_page_status:
     //load virtual address in REG4
     lwi_(REG4, REG17, VOFFSET);
     //test if it is remote
-    subi_(REG5, REG4, PAGESLOCAL);
+    subi_(REG5, REG4, PAGETABLESLOCAL);
     getsw_(REG5);
     and_(REG5, REG5, REG29);
     add_(REG6, REG0, REG29);
     if (beq_(REG5, REG6, 0)) {
         goto flush_page;
     }
-    addi_(REG6, REG0, PAGESLOCAL + TILE_MEM_SIZE);
+    addi_(REG6, REG0, PAGETABLESLOCAL + TILE_MEM_SIZE);
     sub_(REG5, REG6, REG4);
     getsw_(REG5);
     and_(REG5, REG5, REG29);
@@ -763,7 +792,7 @@ ending:
     addi_(REG1, REG0, proc->getProgramCounter());
     flushPages();
     //update processor count
-    lwi_(REG30, REG0, PAGESLOCAL + WOFFSET); 
+    lwi_(REG30, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3); 
     swi_(REG30, REG0, 0x110);
     addi_(REG3, REG0, 0x110);
     addi_(REG1, REG0, proc->getProgramCounter());
@@ -798,7 +827,7 @@ void ProcessorFunctor::forcePageReload() const
 table_walk:
     proc->setProgramCounter(walking_the_table);
     muli_(REG12, REG5, PAGETABLEENTRY);
-    lwi_(REG11, REG12, PAGESLOCAL + VOFFSET + (1 << PAGE_SHIFT));
+    lwi_(REG11, REG12, PAGETABLESLOCAL + VOFFSET + (1 << PAGE_SHIFT));
     if (beq_(REG11, REG6, 0)) {
         goto matched_page;
     }
@@ -812,13 +841,13 @@ walk_next_page:
     goto table_walk;
  
 matched_page:
-    lwi_(REG11, REG12, PAGESLOCAL + FLAGOFFSET + (1 << PAGE_SHIFT));
+    lwi_(REG11, REG12, PAGETABLESLOCAL + FLAGOFFSET + (1 << PAGE_SHIFT));
     andi_(REG13, REG11, 0x01);
     if (beq_(REG13, REG0, 0)) {
         goto walk_next_page;
     }
     andi_(REG11, REG11, 0xFFFFFFFFFFFFFFFE);
-    swi_(REG11, REG12, PAGESLOCAL + FLAGOFFSET + (1 << PAGE_SHIFT));
+    swi_(REG11, REG12, PAGETABLESLOCAL + FLAGOFFSET + (1 << PAGE_SHIFT));
     //dump the page - ie wipe the bitmap
     proc->dumpPageFromTLB(proc->getRegister(REG6));
 
@@ -844,6 +873,17 @@ void ProcessorFunctor::operator()()
         return;
     }
     proc->start();
+/*
+    if (proc->getNumber() == 7) {
+        addi_(REG1, REG0, 0xDB);
+        swi_(REG1, REG0, 0x130);
+        lwi_(REG9, REG0, 0x130);
+	addi_(REG3, REG0, 0x130);
+	addi_(REG1, REG0, proc->getProgramCounter());
+	flushSelectedPage();
+	forcePageReload();
+    }
+*/
     //REG15 holds count
     add_(REG15, REG0, REG0);
     addi_(REG1, REG0, 0x1);
@@ -861,12 +901,11 @@ void ProcessorFunctor::operator()()
     dropPage();
     //store processor number
     addi_(REG1, REG0, proc->getNumber());
-    swi_(REG1, REG0, PAGESLOCAL + WOFFSET);
-
+    swi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
     const uint64_t readCommandPoint = proc->getProgramCounter();
 read_command:
     proc->setProgramCounter(readCommandPoint);
-    lwi_(REG1, REG0, PAGESLOCAL + WOFFSET);    
+    lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);    
     addi_(REG3, REG0, 0x110);
     push_(REG1);
     addi_(REG1, REG0, proc->getProgramCounter());
@@ -885,7 +924,7 @@ read_command:
     sub_(REG30, REG30, REG4);
 
     //wait longer if we have low processor number signalled
-    muli_(REG3, REG30, 0x75);
+    muli_(REG3, REG30, 0x25);
     tickReadingDown = proc->getProgramCounter();
 tick_read_down:
     proc->setProgramCounter(tickReadingDown);
@@ -922,7 +961,7 @@ test_for_processor:
 
 normalise_line:
     push_(REG1);
-    lwi_(REG1, REG0, PAGESLOCAL + WOFFSET);
+    lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
     if (beq_(REG1, REG0, 0)) {
 	goto now_for_normalise;
     }
@@ -1023,15 +1062,14 @@ calculate_next:
     goto wait_on_zero;
 
 on_to_next_round:
-    lwi_(REG1, REG0, PAGESLOCAL + WOFFSET);
+    lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
     add_(REG12, REG0, REG15);
     push_(REG1);
     nextRound();
     pop_(REG1);
     pop_(REG15);
 prepare_to_normalise_next:
-    cout << "Pass " << proc->getRegister(REG15) << " on processor ";
-    cout << proc->getRegister(REG1) << " complete";
+    cout << "Pass " << proc->getRegister(REG15) << " on processor " << proc->getRegister(REG1) << " complete";
     cout <<" - ticks: " << proc->getTicks() << endl;
     if (beq_(REG15, REG1, 0)) {
         goto work_here_is_done;
@@ -1050,7 +1088,7 @@ wait_for_turn_to_complete:
     dropPage();
     addi_(REG1, REG0, proc->getProgramCounter());
     dropPage();
-    lwi_(REG1, REG0, PAGESLOCAL + WOFFSET);
+    lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
     if (beq_(REG4, REG1, 0)) {
         goto write_out_next_processor;
     }
@@ -1125,7 +1163,7 @@ work_here_is_done:
     addi_(REG21, REG0, SETSIZE);
     addi_(REG22, REG0, 0x01);
     addi_(REG23, REG0, 0x110);
-    lwi_(REG10, REG0, PAGESLOCAL + WOFFSET);
+    lwi_(REG10, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
 
     uint64_t completeLoopDone = proc->getProgramCounter();
     uint64_t testProcUpdate;
@@ -1189,9 +1227,8 @@ void ProcessorFunctor::nextRound() const
     //calculate factor for this line
     //REG1 - hold processor number
     //REG12 - the 'top' line
-    lwi_(REG1, REG0, PAGESLOCAL + WOFFSET);
-    cout << "Processor " << proc->getRegister(REG1) << " with base line "; 
-    cout << proc->getRegister(REG12) << endl;
+    lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
+    cout << "Processor " << proc->getRegister(REG1) << " with base line " << proc->getRegister(REG12) << endl;
     if (beq_(REG1, REG12, 0)) {
         return;
     }
@@ -1392,9 +1429,7 @@ next_round_prepare_to_save:
     if (proc->getRegister(REG20) & 0x01) {
 	cout <<"-";
     }
-    cout << proc->getRegister(REG21) << "/" << proc->getRegister(REG22);
-    cout << " : " << proc->getRegister(REG1) << ":";
-    cout << proc->getRegister(REG12) << ":" << proc->getRegister(REG13) << endl;
+    cout << proc->getRegister(REG21) << "/" << proc->getRegister(REG22) << " : " << proc->getRegister(REG1) << ":" << proc->getRegister(REG12) << ":" << proc->getRegister(REG13) << endl;
     add_(REG13, REG13, REG15);
     sub_(REG30, REG14, REG13);
     if (beq_(REG30, REG0, 0)) {

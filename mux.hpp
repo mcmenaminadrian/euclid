@@ -2,11 +2,9 @@
 #ifndef _MUX_CLASS_
 #define _MUX_CLASS_
 
-
-//8 ticks plus MMU time
-static const uint64_t MMU_DELAY = 50;
 static const uint64_t DDR_DELAY = 8;
-static const uint64_t PACKET_LIMIT = 4;
+static const uint64_t MMU_DELAY = 50;
+static const uint64_t PACKET_LIMIT = 4;;
 
 class Memory;
 
@@ -15,23 +13,25 @@ private:
 	Memory* globalMemory;
 	std::pair<uint64_t, uint64_t> lowerLeft;
 	std::pair<uint64_t, uint64_t> lowerRight;
+	bool topBuffer;
 	bool leftBuffer;
 	bool rightBuffer;
 	std::mutex *bottomLeftMutex;
 	std::mutex *bottomRightMutex;
-    std::mutex *mmuMutex;
-        std::unique_lock<std::mutex> mmuLock;
+	std::mutex *gateMutex;
+	std::mutex *acceptedMutex;
+	std::mutex *mmuMutex;
+	bool gate;
 	void disarmMutex();
-    std::mutex *gateMutex;
-    std::mutex *acceptedMutex;
-    bool gate;
-    uint64_t acceptedPackets;
+	std::unique_lock<std::mutex> mmuLock;
+	uint64_t acceptedPackets;
 
 public:
 	Mux* upstreamMux;
 	Mux* downstreamMuxLow;
 	Mux* downstreamMuxHigh;
-	Mux():  leftBuffer(false), rightBuffer(false), 
+
+	Mux():leftBuffer(false), rightBuffer(false), 
             bottomLeftMutex(nullptr), bottomRightMutex(nullptr),
             mmuMutex(nullptr), gateMutex(nullptr), acceptedMutex(nullptr),
 	    acceptedPackets(0), gate(false),
@@ -53,7 +53,7 @@ public:
     	bool acceptPacketUp(const MemoryPacket& mPack) const;
 	void postPacketUp(MemoryPacket& packet);
 	void keepRoutingPacket(MemoryPacket& packet);
-    void addMMUMutex();
+	void addMMUMutex();
 
 };	
 #endif

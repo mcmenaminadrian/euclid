@@ -13,8 +13,8 @@ ControlThread::ControlThread(unsigned long tcks, MainWindow *pWind):
 {
     QObject::connect(this, SIGNAL(updateCycles()),
         pWind, SLOT(updateLCD()));
-    blockedInTree = 0;
 }
+
 
 void ControlThread::releaseToRun()
 {
@@ -22,7 +22,6 @@ void ControlThread::releaseToRun()
 	taskCountLock.lock();
 	signedInCount++;
 	if (signedInCount >= taskCount) {
-		taskCountLock.unlock();
 		lck.unlock();
 		run();
 		return;
@@ -39,11 +38,8 @@ void ControlThread::incrementTaskCount()
 
 void ControlThread::decrementTaskCount()
 {
-	unique_lock<mutex> lck(runLock);
 	unique_lock<mutex> lock(taskCountLock);
 	taskCount--;
-    lock.unlock();
-    lck.unlock();
 	if (signedInCount >= taskCount) {
 		run();
 	}
@@ -70,9 +66,10 @@ void ControlThread::run()
 	signedInCount = 0;
 	ticks++;
 	go.notify_all();
-	//update LCD display
-	++(mainWindow->currentCycles);
-	emit updateCycles();
+    //update LCD display
+    ++(mainWindow->currentCycles);
+	taskCountLock.unlock();
+    emit updateCycles();
 }
 
 void ControlThread::waitForBegin()
@@ -87,14 +84,4 @@ void ControlThread::begin()
 	beginnable = true;
 	go.notify_all();
 	runLock.unlock();
-}
-
-bool ControlThread::tryCheatLock()
-{
-	return cheatLock.try_lock();
-}
-
-void ControlThread::unlockCheatLock()
-{
-	cheatLock.unlock();
 }

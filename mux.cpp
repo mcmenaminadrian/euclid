@@ -14,9 +14,12 @@
 #include "processor.hpp"
 #include "mux.hpp"
 
+
+
+
 using namespace std;
 
-#define WRITE_FACTOR 2
+static const uint WRITE_FACTOR = 2;
 
 
 Mux::~Mux()
@@ -30,21 +33,21 @@ void Mux::disarmMutex()
 	bottomLeftMutex = nullptr;
 	delete bottomRightMutex;
 	bottomRightMutex = nullptr;
-    delete gateMutex;
-    gateMutex = nullptr;
-    if (mmuMutex) {
-        delete mmuMutex;
-        mmuMutex = nullptr;
-	delete acceptedMutex;
-	acceptedMutex = nullptr;
-    }
+	delete gateMutex;
+	gateMutex = nullptr;
+	if (mmuMutex) {
+		delete mmuMutex;
+		mmuMutex = nullptr;
+		delete acceptedMutex;
+		acceptedMutex = nullptr;
+	}
 }
 
 void Mux::initialiseMutex()
 {
 	bottomLeftMutex = new mutex();
 	bottomRightMutex = new mutex();
-    gateMutex = new mutex();
+	gateMutex = new mutex();
 }
 
 bool Mux::acceptPacketUp(const MemoryPacket& mPack) const
@@ -160,37 +163,38 @@ void Mux::routeDown(MemoryPacket& packet)
 	}
 
 fillDDR:
-        bottomLeftMutex->lock();
-        bottomRightMutex->lock();
-        *bufferToUnblock = false;
-        bottomRightMutex->unlock();
-        bottomLeftMutex->unlock();
+	bottomLeftMutex->lock();
+	bottomRightMutex->lock();
+	*bufferToUnblock = false;
+	bottomRightMutex->unlock();
+	bottomLeftMutex->unlock();
 	acceptedPackets++;
-        acceptedMutex->unlock();
-    uint64_t serviceDelay = MMU_DELAY;
-    if (packet.getWrite()) {
-        serviceDelay *= WRITE_FACTOR;
-    }
-    for (unsigned int i = 0; i < serviceDelay; i++) {
-        packet.getProcessor()->incrementServiceTime();
-        packet.getProcessor()->waitGlobalTick();
-    }
-    acceptedMutex->lock();
-    acceptedPackets--;
-    acceptedMutex->unlock();
-    //cross to tree
+	acceptedMutex->unlock();
+	uint64_t serviceDelay = MMU_DELAY;
+	if (packet.getWrite()) {
+		serviceDelay *= WRITE_FACTOR;
+	}
+	for (unsigned int i = 0; i < serviceDelay; i++) {
+		packet.getProcessor()->incrementServiceTime();
+		packet.getProcessor()->waitGlobalTick();
+	}
+	acceptedMutex->lock();
+	acceptedPackets--;
+	acceptedMutex->unlock();
+	//cross to tree
 	for (unsigned int i = 0; i < DDR_DELAY; i++) {
 		packet.getProcessor()->waitGlobalTick();
 	}
 	//get memory
-    if (packet.getRequestSize() > 0) {
-        for (unsigned int i = 0; i < packet.getRequestSize(); i++) {
-            packet.fillBuffer(packet.getProcessor()->
-                getTile()->readByte(packet.getRemoteAddress() + i));
-        }
-    }
-    return;
-}	
+	if (packet.getRequestSize() > 0) {
+		for (unsigned int i = 0; i < packet.getRequestSize(); i++) {
+			packet.fillBuffer(packet.getProcessor()->
+			getTile()->readByte(packet.getRemoteAddress() + i));
+		}
+	}
+	return;
+
+}
 
 void Mux::keepRoutingPacket(MemoryPacket& packet)
 {
@@ -200,6 +204,7 @@ void Mux::keepRoutingPacket(MemoryPacket& packet)
 		return postPacketUp(packet);
 	}
 }
+	
 
 void Mux::postPacketUp(MemoryPacket& packet)
 {
@@ -359,13 +364,15 @@ void Mux::postPacketUp(MemoryPacket& packet)
 	}
 }
 
+
 void Mux::routePacket(MemoryPacket& packet)
 {
+	//is the buffer free?
 	const uint64_t processorIndex = packet.getProcessor()->
 		getTile()->getOrder();
 	if (processorIndex >= lowerLeft.first &&
 		processorIndex <= lowerLeft.second) {
-		fillBottomBuffer(leftBuffer, bottomLeftMutex,
+		fillBottomBuffer(leftBuffer, bottomLeftMutex, 
 			packet);
 	} else {
 		fillBottomBuffer(rightBuffer, bottomRightMutex,
@@ -387,10 +394,11 @@ void Mux::assignNumbers(const uint64_t& ll, const uint64_t& ul,
 	lowerRight = pair<uint64_t, uint64_t>(lr, ur);
 }
 
+
 void Mux::addMMUMutex()
 {
-    mmuMutex = new mutex();
-    acceptedMutex = new mutex();
-    mmuLock =  unique_lock<mutex>(*mmuMutex);
-    mmuLock.unlock();
+	mmuMutex = new mutex();
+	acceptedMutex = new mutex();
+	mmuLock = unique_lock<mutex>(*mmuMutex);
+	mmuLock.unlock();
 }
