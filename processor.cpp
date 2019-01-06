@@ -345,7 +345,7 @@ uint64_t Processor::triggerSmallFault(
 const pair<const uint64_t, bool> Processor::getRandomFrame()
 {
 	waitATick();
-	randomPage = (randomPage++)%FREEPAGES;
+	randomPage = (randomPage + 1)%FREEPAGES;
 	waitATick();
 	return pair<const uint64_t, bool>(randomPage + BASEPAGES, true);
 }
