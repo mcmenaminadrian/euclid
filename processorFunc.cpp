@@ -370,10 +370,16 @@ void ProcessorFunctor::ori_(const uint64_t& regA, const uint64_t& regB,
 ///End of instruction set ///
 
 #define SETSIZE 256
+#define PROCSET 64
 
 ProcessorFunctor::ProcessorFunctor(Tile *tileIn):
 	tile{tileIn}, proc{tileIn->tileProcessor}
 {
+	for (int i = 1; i < 5; i++)
+	{
+		targets.push_back(tileIn.getOrder() * i);
+	}
+	current_index = 0;
 }
 
 //flush the page referenced in REG3
@@ -867,23 +873,15 @@ void ProcessorFunctor::operator()()
     uint64_t tickReadingDown;
     uint64_t normaliseDelayLoop;
     uint64_t shortDelayLoop;
+    uint64_t onToNextTask;
+    uint64_t endProcessorMultiTask;
+    current_index = 1;
     const uint64_t order = tile->getOrder();
     Tile *masterTile = proc->getTile();
-    if (order >= SETSIZE) {
+    if (order >= PROCSIZE) {
         return;
     }
     proc->start();
-/*
-    if (proc->getNumber() == 7) {
-        addi_(REG1, REG0, 0xDB);
-        swi_(REG1, REG0, 0x130);
-        lwi_(REG9, REG0, 0x130);
-	addi_(REG3, REG0, 0x130);
-	addi_(REG1, REG0, proc->getProgramCounter());
-	flushSelectedPage();
-	forcePageReload();
-    }
-*/
     //REG15 holds count
     add_(REG15, REG0, REG0);
     addi_(REG1, REG0, 0x1);
@@ -891,7 +889,7 @@ void ProcessorFunctor::operator()()
     //initial commands
     addi_(REG1, REG0, 0xFF00);
     swi_(REG1, REG0, 0x100);
-    addi_(REG1, REG0, SETSIZE);
+    addi_(REG1, REG0, PROCSIZE);
     swi_(REG1, REG0, 0x110);
     addi_(REG1, REG0, proc->getProgramCounter());
     addi_(REG3, REG0, 0x100);
@@ -915,12 +913,12 @@ read_command:
     addi_(REG1, REG0, proc->getProgramCounter());
     dropPage();
     pop_(REG1);
-    addi_(REG3, REG0, SETSIZE);
+    addi_(REG3, REG0, PROCSIZE);
     if (beq_(REG3, REG4, 0)) {
         goto keep_reading_command;
     }
 
-    addi_(REG30, REG0, SETSIZE);
+    addi_(REG30, REG0, PROCSIZE);
     sub_(REG30, REG30, REG4);
 
     //wait longer if we have low processor number signalled
@@ -1056,21 +1054,47 @@ calculate_next:
     pop_(REG4);
     andi_(REG4, REG4, 0xFF);
     if (beq_(REG4, REG15, 0)) {
+       onToNextRound = proc->getProgramCounter() + 4;
 	goto on_to_next_round;
     }
     br_(0);
     goto wait_on_zero;
 
 on_to_next_round:
+    proc->setProgramCounter(onToNextRound);
     lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
     add_(REG12, REG0, REG15);
     push_(REG1);
     nextRound();
     pop_(REG1);
     pop_(REG15);
+    push_(REG1);
+    mul_(REG1, REG1, current_index);
 prepare_to_normalise_next:
     cout << "Pass " << proc->getRegister(REG15) << " on processor " << proc->getRegister(REG1) << " complete";
     cout <<" - ticks: " << proc->getTicks() << endl;
+    pop_(REG1);
+    push_(REG2);
+    addi_(REG2, REG0, current_index);
+    addi_(REG2, REG2, 1);
+    push_(REG3);
+    addi_(REG3, REG0, 5);
+    sub_(REG3, REG3, REG2);
+    if (beq_(REG3, REG0, 0)) {
+        pop_(REG3);
+        pop_(REG1);
+        endProcessorMultiTask = getProgramCounter() + 16;
+	goto end_processor_multitask;
+    }
+    pop_(REG3);
+    pop_(REG1);
+    addi(REG0, REG0, 1); //use the cycle
+    current_index++
+    br_(0);
+    proc->setProgramCounter(onToNextRound);
+    goto onToNextRound;
+
+end_processor_multitask:
     if (beq_(REG15, REG1, 0)) {
         goto work_here_is_done;
     }
@@ -1228,6 +1252,7 @@ void ProcessorFunctor::nextRound() const
     //REG1 - hold processor number
     //REG12 - the 'top' line
     lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
+    mul_(REG1, REG1, current_index);
     cout << "Processor " << proc->getRegister(REG1) << " with base line " << proc->getRegister(REG12) << endl;
     if (beq_(REG1, REG12, 0)) {
         return;

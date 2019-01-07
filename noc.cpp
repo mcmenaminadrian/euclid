@@ -28,6 +28,9 @@
 
 #define PAGE_TABLE_COUNT 256
 
+static const uint task_count = 256;
+static const uint processor_count = 64; // 4 x 64 = 256
+
 using namespace std;
 
 Noc::Noc(const long columns, const long rows, const long pageShift,

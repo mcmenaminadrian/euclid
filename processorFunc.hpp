@@ -7,6 +7,8 @@ class ProcessorFunctor {
 
 private:
     static const uint64_t sumCount;
+	std::vector<int> targets;
+	int current_index;
 	Tile *tile;
 	Processor *proc;
     uint64_t startingPoint;

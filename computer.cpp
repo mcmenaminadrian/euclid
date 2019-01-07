@@ -36,8 +36,8 @@ int main(int argc, char *argv[])
 {
 	long memoryBlocks = 1;
 	long blockSize = 1024 * 1024 * 1024;
-	long rows = 16;
-	long columns = 16;
+	long rows = 8;
+	long columns = 8;
 	long pageShift = PAGE_SHIFT;
 
 	for (int i = 1; i < argc; i++) {
