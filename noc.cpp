@@ -289,7 +289,7 @@ long Noc::executeInstructions()
     pBarrier = new ControlThread(0, mainWindow);
 	vector<thread *> threads;
 
-	for (int i = 0; i < columnCount * rowCount; i++) {
+	for (int i = 0; i < 64; i++) {
 		ProcessorFunctor funcky(tileAt(i));
 		//spawn a thread per tile
 		threads.push_back(new thread(funcky));

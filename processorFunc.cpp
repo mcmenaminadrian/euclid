@@ -370,16 +370,11 @@ void ProcessorFunctor::ori_(const uint64_t& regA, const uint64_t& regB,
 ///End of instruction set ///
 
 #define SETSIZE 256
-#define PROCSET 64
+#define PROCSIZE 64
 
 ProcessorFunctor::ProcessorFunctor(Tile *tileIn):
 	tile{tileIn}, proc{tileIn->tileProcessor}
 {
-	for (int i = 1; i < 5; i++)
-	{
-		targets.push_back(tileIn.getOrder() * i);
-	}
-	current_index = 0;
 }
 
 //flush the page referenced in REG3
@@ -874,6 +869,7 @@ void ProcessorFunctor::operator()()
     uint64_t normaliseDelayLoop;
     uint64_t shortDelayLoop;
     uint64_t onToNextTask;
+    uint64_t onToNextRound;
     uint64_t endProcessorMultiTask;
     current_index = 1;
     const uint64_t order = tile->getOrder();
