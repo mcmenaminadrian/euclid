@@ -900,6 +900,10 @@ void ProcessorFunctor::operator()()
     //store processor number
     addi_(REG1, REG0, proc->getNumber());
     swi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
+    //store current base iteration
+    swi_(REG0, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
+    //store current iteration
+    swi_(REG0, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
     const uint64_t readCommandPoint = proc->getProgramCounter();
 read_command:
     proc->setProgramCounter(readCommandPoint);
@@ -1063,42 +1067,42 @@ calculate_next:
 on_to_next_round:
     proc->setProgramCounter(onToNextRound);
     lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
+    lwi_(REG12, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
+    lwi_(REG13, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
+    add_(REG12, REG0, REG13);
+    muli_(REG12, REG12, 64);
+    add_(REG1, REG12, REG1);
     add_(REG12, REG0, REG15);
     push_(REG1);
     nextRound();
     pop_(REG1);
     pop_(REG15);
-    push_(REG1);
-    mul_(REG1, REG1, current_index);
 prepare_to_normalise_next:
     cout << "Pass " << proc->getRegister(REG15) << " on processor " << proc->getRegister(REG1) << " complete";
     cout <<" - ticks: " << proc->getTicks() << endl;
-    pop_(REG1);
-    push_(REG2);
-    addi_(REG2, REG0, current_index);
-    addi_(REG2, REG2, 1);
-    push_(REG3);
-    addi_(REG3, REG0, 5);
-    sub_(REG3, REG3, REG2);
-    if (beq_(REG3, REG0, 0)) {
-        pop_(REG3);
-        pop_(REG1);
-        endProcessorMultiTask = getProgramCounter() + 16;
-	goto end_processor_multitask;
+    //have to iterate through all our assigned cores
+    lwi_(REG2, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
+    lwi_(REG12, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
+    add_(REG2, REG0, REG12);
+    addi_(REG2, REG0, 1);
+    addi_(REG3, REG0, 4);
+    subi_(REG4, REG3, REG2);
+    if (beq_(REG4, REG0, 0)) {
+        proc->setProgramCounter(proc->getProgramCounter() + 12);
+        goto ending_run;
     }
-    pop_(REG3);
-    pop_(REG1);
-    addi(REG0, REG0, 1); //use the cycle
-    current_index++
+    swi_(REG2, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
     br_(0);
-    proc->setProgramCounter(onToNextRound);
-    goto onToNextRound;
+    goto on_to_next_round; 
 
-end_processor_multitask:
+
+ending_run:
+    lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
     if (beq_(REG15, REG1, 0)) {
         goto work_here_is_done;
     }
     addi_(REG15, REG15, 0x01);
+    sw_(REG2, REG0, REG0);
 
     waitingForTurn = proc->getProgramCounter();
 wait_for_turn_to_complete:
@@ -1240,8 +1244,11 @@ completed_wait:
     flushSelectedPage();
     cout << proc->getNumber() << ": our work here is done" << endl;
     cout << "Ticks: " << proc->getTicks() << endl;
-    masterTile->getBarrier()->decrementTaskCount();
- }  
+    lwi_(REG21, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
+    addi_(REG21, REG21, 1);
+    swi_(REG21, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
+    goto read_command;
+}  
 
 //this function just to break code up
 void ProcessorFunctor::nextRound() const
