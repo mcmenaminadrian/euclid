@@ -871,7 +871,6 @@ void ProcessorFunctor::operator()()
     uint64_t onToNextTask;
     uint64_t onToNextRound;
     uint64_t endProcessorMultiTask;
-    current_index = 1;
     const uint64_t order = tile->getOrder();
     Tile *masterTile = proc->getTile();
     if (order >= PROCSIZE) {
@@ -1255,7 +1254,6 @@ void ProcessorFunctor::nextRound() const
     //REG1 - hold processor number
     //REG12 - the 'top' line
     lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
-    mul_(REG1, REG1, current_index);
     cout << "Processor " << proc->getRegister(REG1) << " with base line " << proc->getRegister(REG12) << endl;
     if (beq_(REG1, REG12, 0)) {
         return;
