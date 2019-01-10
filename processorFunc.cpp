@@ -869,7 +869,7 @@ void ProcessorFunctor::operator()()
     uint64_t normaliseDelayLoop;
     uint64_t shortDelayLoop;
     uint64_t onToNextTask;
-    uint64_t onToNextRound;
+    uint64_t onToNextRound = 0;
     uint64_t endProcessorMultiTask;
     const uint64_t order = tile->getOrder();
     Tile *masterTile = proc->getTile();
@@ -1088,6 +1088,9 @@ prepare_to_normalise_next:
     }
     swi_(REG2, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
     br_(0);
+    if (onToNextRound == 0) {
+         onToNextRound = proc->getProgramCounter() - 256;
+    }
     goto on_to_next_round; 
 
 
