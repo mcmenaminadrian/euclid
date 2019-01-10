@@ -1089,7 +1089,8 @@ prepare_to_normalise_next:
     swi_(REG2, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
     br_(0);
     if (onToNextRound == 0) {
-         onToNextRound = proc->getProgramCounter() - 256;
+	 push_(REG15);
+         onToNextRound = proc->getProgramCounter() - 1024;
     }
     goto on_to_next_round; 
 

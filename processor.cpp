@@ -1025,7 +1025,7 @@ void Processor::pushStackPointer()
 void Processor::popStackPointer()
 {
 	stackPointer += sizeof(uint64_t);
-    if (stackPointer >= stackPointerUnder) {
+    if (stackPointer > stackPointerUnder) {
         cerr << "Stack Overflow" << endl;
         throw "Stack Overflow\n";
 	}
