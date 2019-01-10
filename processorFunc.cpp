@@ -1257,7 +1257,6 @@ void ProcessorFunctor::nextRound() const
     //calculate factor for this line
     //REG1 - hold processor number
     //REG12 - the 'top' line
-    lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
     cout << "Processor " << proc->getRegister(REG1) << " with base line " << proc->getRegister(REG12) << endl;
     if (beq_(REG1, REG12, 0)) {
         return;
