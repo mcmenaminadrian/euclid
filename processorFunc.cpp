@@ -1064,7 +1064,7 @@ on_to_next_round:
     lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
     lwi_(REG12, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
     lwi_(REG13, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
-    add_(REG12, REG0, REG13);
+    add_(REG12, REG12, REG13);
     muli_(REG12, REG12, 64);
     add_(REG1, REG12, REG1);
     add_(REG12, REG0, REG15);
@@ -1089,9 +1089,9 @@ prepare_to_normalise_next:
     swi_(REG2, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
     br_(0);
     if (onToNextRound == 0) {
-	 push_(REG15);
          onToNextRound = proc->getProgramCounter() - 1024;
     }
+    push_(REG15);
     goto on_to_next_round; 
 
 
