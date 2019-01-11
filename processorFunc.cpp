@@ -1053,7 +1053,7 @@ calculate_next:
     pop_(REG4);
     andi_(REG4, REG4, 0xFF);
     if (beq_(REG4, REG15, 0)) {
-       onToNextRound = proc->getProgramCounter() + 4;
+        onToNextRound = proc->getProgramCounter() + 4;
 	goto on_to_next_round;
     }
     br_(0);
@@ -1078,7 +1078,7 @@ prepare_to_normalise_next:
     //have to iterate through all our assigned cores
     lwi_(REG2, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
     lwi_(REG12, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
-    add_(REG2, REG0, REG12);
+    add_(REG2, REG2, REG12);
     addi_(REG2, REG2, 1);
     addi_(REG3, REG0, 4);
     subi_(REG4, REG3, REG2);
