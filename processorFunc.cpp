@@ -1079,7 +1079,7 @@ prepare_to_normalise_next:
     lwi_(REG2, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
     lwi_(REG12, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
     add_(REG2, REG0, REG12);
-    addi_(REG2, REG0, 1);
+    addi_(REG2, REG2, 1);
     addi_(REG3, REG0, 4);
     subi_(REG4, REG3, REG2);
     if (beq_(REG4, REG0, 0)) {
