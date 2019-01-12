@@ -1078,10 +1078,10 @@ prepare_to_normalise_next:
     //have to iterate through all our assigned cores
     lwi_(REG2, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
     lwi_(REG12, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
-    add_(REG2, REG2, REG12);
     addi_(REG2, REG2, 1);
+    add_(REG5, REG2, REG12);
     addi_(REG3, REG0, 4);
-    subi_(REG4, REG3, REG2);
+    subi_(REG4, REG3, REG5);
     if (beq_(REG4, REG0, 0)) {
         proc->setProgramCounter(proc->getProgramCounter() + 12);
         goto ending_run;
@@ -1096,6 +1096,7 @@ prepare_to_normalise_next:
 
 
 ending_run:
+    swi_(REG0, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
     lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
     if (beq_(REG15, REG1, 0)) {
         goto work_here_is_done;
