@@ -1082,7 +1082,7 @@ prepare_to_normalise_next:
     addi_(REG2, REG2, 1);
     add_(REG5, REG2, REG12);
     addi_(REG3, REG0, 4);
-    subi_(REG4, REG3, REG5);
+    sub_(REG4, REG3, REG5);
     if (beq_(REG4, REG0, 0)) {
         proc->setProgramCounter(proc->getProgramCounter() + 12);
         goto ending_run;
