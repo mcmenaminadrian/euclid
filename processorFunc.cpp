@@ -1073,7 +1073,8 @@ on_to_next_round:
     pop_(REG1);
     pop_(REG15);
 prepare_to_normalise_next:
-    cout << "Pass " << proc->getRegister(REG15) << " on processor " << proc->getRegister(REG1) << " complete";
+    cout << "Pass " << proc->getRegister(REG15) << " on processor ";
+    cout  << proc->getRegister(REG1) << " complete";
     cout <<" - ticks: " << proc->getTicks() << endl;
     //have to iterate through all our assigned cores
     lwi_(REG2, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
@@ -1258,7 +1259,8 @@ void ProcessorFunctor::nextRound() const
     //calculate factor for this line
     //REG1 - hold processor number
     //REG12 - the 'top' line
-    cout << "Processor " << proc->getRegister(REG1) << " with base line " << proc->getRegister(REG12) << endl;
+    cout << "Processor " << proc->getRegister(REG1) << " with base line ";
+    cout  << proc->getRegister(REG12) << endl;
     if (beq_(REG1, REG12, 0)) {
         return;
     }
@@ -1459,7 +1461,10 @@ next_round_prepare_to_save:
     if (proc->getRegister(REG20) & 0x01) {
 	cout <<"-";
     }
-    cout << proc->getRegister(REG21) << "/" << proc->getRegister(REG22) << " : " << proc->getRegister(REG1) << ":" << proc->getRegister(REG12) << ":" << proc->getRegister(REG13) << endl;
+    cout << proc->getRegister(REG21) << "/" << proc->getRegister(REG22);
+    cout  << " : " << proc->getRegister(REG1) << ":"i;
+    cout  << proc->getRegister(REG12) << ":" << proc->getRegister(REG13);
+    cout  << endl;
     add_(REG13, REG13, REG15);
     sub_(REG30, REG14, REG13);
     if (beq_(REG30, REG0, 0)) {
