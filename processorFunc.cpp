@@ -1462,7 +1462,7 @@ next_round_prepare_to_save:
 	cout <<"-";
     }
     cout << proc->getRegister(REG21) << "/" << proc->getRegister(REG22);
-    cout  << " : " << proc->getRegister(REG1) << ":"i;
+    cout  << " : " << proc->getRegister(REG1) << ":";
     cout  << proc->getRegister(REG12) << ":" << proc->getRegister(REG13);
     cout  << endl;
     add_(REG13, REG13, REG15);
