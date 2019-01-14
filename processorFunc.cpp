@@ -1189,7 +1189,7 @@ work_here_is_done:
     cout <<"Ticks: " << proc->getTicks() << endl;
 
     //now scan for completed processes
-    addi_(REG21, REG0, SETSIZE);
+    addi_(REG21, REG0, PROCSIZE);
     addi_(REG22, REG0, 0x01);
     addi_(REG23, REG0, 0x110);
     lwi_(REG10, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
