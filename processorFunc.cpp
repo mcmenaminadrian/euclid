@@ -370,11 +370,11 @@ void ProcessorFunctor::ori_(const uint64_t& regA, const uint64_t& regB,
 ///End of instruction set ///
 
 #define SETSIZE 256
-#define PROCSIZE 64
 
 ProcessorFunctor::ProcessorFunctor(Tile *tileIn):
 	tile{tileIn}, proc{tileIn->tileProcessor}
 {
+	PROCSIZE = 64;
 }
 
 //flush the page referenced in REG3
@@ -903,6 +903,8 @@ void ProcessorFunctor::operator()()
 read_command:
     proc->setProgramCounter(readCommandPoint);
     lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);    
+    lwi_(REG17, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
+    add_(REG19, REG1, REG17);
     addi_(REG3, REG0, 0x110);
     push_(REG1);
     addi_(REG1, REG0, proc->getProgramCounter());
@@ -1105,6 +1107,7 @@ ending_run:
     addi_(REG15, REG15, 0x01);
     sw_(REG2, REG0, REG0);
 
+    PROCSIZE++;
     waitingForTurn = proc->getProgramCounter();
 wait_for_turn_to_complete:
     proc->setProgramCounter(waitingForTurn);
@@ -1118,6 +1121,8 @@ wait_for_turn_to_complete:
     addi_(REG1, REG0, proc->getProgramCounter());
     dropPage();
     lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
+    lwi_(REG17, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
+    add_(REG1, REG17, REG1);
     if (beq_(REG4, REG1, 0)) {
         goto write_out_next_processor;
     }
@@ -1162,6 +1167,7 @@ write_out_next_processor:
         << dec << proc->getNumber();
     cout <<" - ticks: " << proc->getTicks() << endl;
     br_(0);
+    nop_();
     goto read_command;
     //construct next signal
 
@@ -1248,7 +1254,10 @@ completed_wait:
     lwi_(REG21, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
     addi_(REG21, REG21, 1);
     swi_(REG21, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
-    goto read_command;
+    nop_();
+    PROCSIZE++;
+    waitingForTurn = proc->getProgramCounter() - 512;
+    goto wait_for_turn_to_complete;;
 }  
 
 //this function just to break code up
