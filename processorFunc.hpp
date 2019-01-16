@@ -7,8 +7,7 @@ class ProcessorFunctor {
 
 private:
     static const uint64_t sumCount;
-	static uint64_t baseLine;
-	static uint64_t PROCSIZE;
+	uint64_t PROCSIZE;
 	std::vector<int> targets;
 	int current_index;
 	Tile *tile;

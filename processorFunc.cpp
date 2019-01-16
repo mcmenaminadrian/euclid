@@ -1097,7 +1097,6 @@ prepare_to_normalise_next:
     push_(REG15);
     goto on_to_next_round; 
 
-
 ending_run:
     swi_(REG0, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
     lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
@@ -1256,6 +1255,16 @@ completed_wait:
     swi_(REG21, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
     nop_();
     PROCSIZE++;
+    lwi_(REG30, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
+    lwi_(REG29, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
+    add_(REG30, REG30, REG29);
+    swi_(REG30, REG0, 0x110);
+    addi_(REG3, REG0, 0x110);
+    addi_(REG1, REG0, proc->getProgramCounter());
+    br_(0);
+    flushSelectedPage();
+    pop_(REG1);
+
     waitingForTurn = proc->getProgramCounter() - 512;
     goto wait_for_turn_to_complete;;
 }  
