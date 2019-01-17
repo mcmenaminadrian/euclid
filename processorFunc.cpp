@@ -1263,7 +1263,6 @@ completed_wait:
     addi_(REG1, REG0, proc->getProgramCounter());
     br_(0);
     flushSelectedPage();
-    pop_(REG1);
 
     waitingForTurn = proc->getProgramCounter() - 512;
     goto wait_for_turn_to_complete;;
