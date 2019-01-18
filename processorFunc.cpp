@@ -1104,8 +1104,8 @@ ending_run:
         goto work_here_is_done;
     }
     addi_(REG15, REG15, 0x01);
-    sw_(REG2, REG0, REG0);
-
+   // sw_(REG2, REG0, REG0);
+    nop_();
     PROCSIZE++;
     waitingForTurn = proc->getProgramCounter();
 wait_for_turn_to_complete:
@@ -1255,17 +1255,21 @@ completed_wait:
     swi_(REG21, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
     nop_();
     PROCSIZE++;
-    lwi_(REG30, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
-    lwi_(REG29, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
-    add_(REG30, REG30, REG29);
+    addi_(REG30, REG0, PROCSIZE);
     swi_(REG30, REG0, 0x110);
     addi_(REG3, REG0, 0x110);
     addi_(REG1, REG0, proc->getProgramCounter());
     br_(0);
     flushSelectedPage();
-
-    waitingForTurn = proc->getProgramCounter() - 512;
-    goto wait_for_turn_to_complete;;
+    addi_(REG15, REG15, 1);
+    addi_(REG30, REG0, 0xFF00);
+    or_(REG30, REG30, REG15);
+    addi_(REG3, REG0, 0x100);
+    sw_(REG30, REG0, REG3);
+    addi_(REG1, REG0, proc->getProgramCounter());
+    br(0);
+    flushSelectedPage();
+    goto read_command; 
 }  
 
 //this function just to break code up
