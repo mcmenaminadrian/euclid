@@ -1267,7 +1267,7 @@ completed_wait:
     addi_(REG3, REG0, 0x100);
     sw_(REG30, REG0, REG3);
     addi_(REG1, REG0, proc->getProgramCounter());
-    br(0);
+    br_(0);
     flushSelectedPage();
     goto read_command; 
 }  
