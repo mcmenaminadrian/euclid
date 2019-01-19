@@ -904,6 +904,7 @@ read_command:
     proc->setProgramCounter(readCommandPoint);
     lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);    
     lwi_(REG17, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
+    muli_(REG17, REG17, 0x40);
     add_(REG19, REG1, REG17);
     addi_(REG3, REG0, 0x110);
     push_(REG1);
@@ -1067,7 +1068,7 @@ on_to_next_round:
     lwi_(REG12, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
     lwi_(REG13, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
     add_(REG12, REG12, REG13);
-    muli_(REG12, REG12, 64);
+    muli_(REG12, REG12, 0x40);
     add_(REG1, REG12, REG1);
     add_(REG12, REG0, REG15);
     push_(REG1);
@@ -1104,7 +1105,6 @@ ending_run:
         goto work_here_is_done;
     }
     addi_(REG15, REG15, 0x01);
-   // sw_(REG2, REG0, REG0);
     nop_();
     PROCSIZE++;
     waitingForTurn = proc->getProgramCounter();
@@ -1117,10 +1117,9 @@ wait_for_turn_to_complete:
     br_(0);
     addi_(REG1, REG0, proc->getProgramCounter());
     dropPage();
-    addi_(REG1, REG0, proc->getProgramCounter());
-    dropPage();
     lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
     lwi_(REG17, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
+    muli_(REG17, REG17, 0x40);
     add_(REG1, REG17, REG1);
     if (beq_(REG4, REG1, 0)) {
         goto write_out_next_processor;
