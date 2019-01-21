@@ -1084,7 +1084,7 @@ prepare_to_normalise_next:
     lwi_(REG12, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
     addi_(REG2, REG2, 1);
     add_(REG5, REG2, REG12);
-    addi_(REG3, REG0, 0x40);
+    addi_(REG3, REG0, 0x10);
     sub_(REG4, REG3, REG5);
     if (beq_(REG4, REG0, 0)) {
         proc->setProgramCounter(proc->getProgramCounter() + 12);
