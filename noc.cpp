@@ -29,7 +29,7 @@
 #define PAGE_TABLE_COUNT 256
 
 static const uint task_count = 256;
-static const uint processor_count = 64; // 4 x 64 = 256
+static const uint processor_count = 16;
 
 using namespace std;
 
@@ -289,7 +289,7 @@ long Noc::executeInstructions()
     pBarrier = new ControlThread(0, mainWindow);
 	vector<thread *> threads;
 
-	for (int i = 0; i < 64; i++) {
+	for (int i = 0; i < 16; i++) {
 		ProcessorFunctor funcky(tileAt(i));
 		//spawn a thread per tile
 		threads.push_back(new thread(funcky));

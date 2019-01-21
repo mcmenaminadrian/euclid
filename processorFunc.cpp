@@ -374,7 +374,7 @@ void ProcessorFunctor::ori_(const uint64_t& regA, const uint64_t& regB,
 ProcessorFunctor::ProcessorFunctor(Tile *tileIn):
 	tile{tileIn}, proc{tileIn->tileProcessor}
 {
-	PROCSIZE = 64;
+	PROCSIZE = 16;
 }
 
 //flush the page referenced in REG3
@@ -904,7 +904,7 @@ read_command:
     proc->setProgramCounter(readCommandPoint);
     lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);    
     lwi_(REG17, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
-    muli_(REG17, REG17, 0x40);
+    muli_(REG17, REG17, 0x10);
     add_(REG19, REG1, REG17);
     addi_(REG3, REG0, 0x110);
     push_(REG1);
@@ -1068,7 +1068,7 @@ on_to_next_round:
     lwi_(REG12, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 5);
     lwi_(REG13, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
     add_(REG12, REG12, REG13);
-    muli_(REG12, REG12, 0x40);
+    muli_(REG12, REG12, 0x10);
     add_(REG1, REG12, REG1);
     add_(REG12, REG0, REG15);
     push_(REG1);
@@ -1084,7 +1084,7 @@ prepare_to_normalise_next:
     lwi_(REG12, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
     addi_(REG2, REG2, 1);
     add_(REG5, REG2, REG12);
-    addi_(REG3, REG0, 4);
+    addi_(REG3, REG0, 0x40);
     sub_(REG4, REG3, REG5);
     if (beq_(REG4, REG0, 0)) {
         proc->setProgramCounter(proc->getProgramCounter() + 12);
@@ -1119,7 +1119,7 @@ wait_for_turn_to_complete:
     dropPage();
     lwi_(REG1, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 3);
     lwi_(REG17, REG0, PAGETABLESLOCAL + sizeof(uint64_t) * 4);
-    muli_(REG17, REG17, 0x40);
+    muli_(REG17, REG17, 0x10);
     add_(REG1, REG17, REG1);
     if (beq_(REG4, REG1, 0)) {
         goto write_out_next_processor;
@@ -1229,7 +1229,7 @@ test_proc_update:
     if (beq_(REG4, REG0, 0)) {
         goto complete_loop_done;
     }
-    addi_(REG7, REG0, 0x40);
+    addi_(REG7, REG0, 0x10);
     shortDelayLoop = proc->getProgramCounter();
 short_delay_loop_nop:
     proc->setProgramCounter(shortDelayLoop);
