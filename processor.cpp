@@ -1016,18 +1016,18 @@ void Processor::waitGlobalTick()
 void Processor::pushStackPointer()
 {
 	stackPointer -= sizeof(uint64_t);
-    if (stackPointer >= stackPointerUnder) {
-        cerr << "Stack Underflow" << endl;
-        throw "Stack Underflow\n";
+	if (stackPointer < stackPointerOver) {
+        	cerr << "Stack Underflow" << endl;
+        	throw "Stack Underflow\n";
 	}
 }
 
 void Processor::popStackPointer()
 {
 	stackPointer += sizeof(uint64_t);
-    if (stackPointer < stackPointerOver) {
-        cerr << "Stack Overflow" << endl;
-        throw "Stack Overflow\n";
+	if (stackPointer > stackPointerUnder) {
+        	cerr << "Stack Overflow" << endl;
+        	throw "Stack Overflow\n";
 	}
 }
 
