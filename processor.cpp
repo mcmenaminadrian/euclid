@@ -767,7 +767,7 @@ uint64_t Processor::fetchAddressWrite(const uint64_t& address)
                                        readLong(baseAddress + VOFFSET);
                                uint32_t oldFlags = masterTile->
                                        readWord32(baseAddress + FLAGOFFSET);
-                               if (!(oldFlags & 0x05)) {
+                               if (oldFlags & 0x08) {
                                        waitATick();
 					oldFlags = oldFlags^0x08;   
                                        masterTile->writeWord32(baseAddress +
@@ -803,6 +803,7 @@ uint64_t Processor::fetchAddressWrite(const uint64_t& address)
                        waitATick();
                        if (pageSought == storedPage) {
                                waitATick();
+			       flags = flags^0x08;
                                flags |= 0x04;
                                masterTile->writeWord32(addressInPageTable +
                                        FLAGOFFSET, flags);
